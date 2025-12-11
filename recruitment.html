@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recruitment - Harris County Sheriff's Office</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .hero-gradient {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #d97706 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 8s ease-in-out infinite;
+        }
+        
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            background: rgba(30, 58, 138, 0.9);
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #d97706, #f59e0b);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(217, 119, 6, 0.3);
+        }
+        
+        .text-shadow {
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .animate-fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        
+        .animate-fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+            transition: all 0.6s ease;
+        }
+        
+        .step-indicator {
+            transition: all 0.3s ease;
+        }
+        
+        .step-indicator.active {
+            background: #d97706;
+            color: white;
+        }
+        
+        .step-indicator.completed {
+            background: #059669;
+            color: white;
+        }
+        
+        .form-step {
+            display: none;
+        }
+        
+        .form-step.active {
+            display: block;
+        }
+        
+        .progress-bar {
+            transition: width 0.5s ease;
+        }
+        
+        .requirement-item {
+            transition: all 0.3s ease;
+        }
+        
+        .requirement-item.checked {
+            background: #f0fdf4;
+            border-color: #059669;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .close {
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #6b7280;
+        }
+        
+        .close:hover {
+            color: #1e3a8a;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 glass-effect">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <img src="resources/sheriff_badge.png" alt="Harris County Sheriff's Office" class="h-10 w-10 mr-3">
+                    <span class="text-white font-bold text-xl">Harris County Sheriff's Office</span>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="index.html" class="text-white hover:text-yellow-300 px-3 py-2 text-sm font-medium transition-colors">Home</a>
+                        <a href="recruitment.html" class="text-white hover:text-yellow-300 px-3 py-2 text-sm font-medium border-b-2 border-yellow-300">Recruitment</a>
+                        <a href="crime_stats.html" class="text-white hover:text-yellow-300 px-3 py-2 text-sm font-medium transition-colors">Crime Stats</a>
+                        <a href="divisions.html" class="text-white hover:text-yellow-300 px-3 py-2 text-sm font-medium transition-colors">Divisions</a>
+                        <button onclick="openEmergencyModal()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">Emergency</button>
+                    </div>
+                </div>
+                <div class="md:hidden">
+                    <button onclick="toggleMobileMenu()" class="text-white hover:text-yellow-300">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="mobile-menu" class="hidden md:hidden bg-blue-900">
+            <div class="px-2 pt-2 pb-3 space-y-1">
+                <a href="index.html" class="text-white block px-3 py-2 text-base font-medium">Home</a>
+                <a href="recruitment.html" class="text-white block px-3 py-2 text-base font-medium">Recruitment</a>
+                <a href="crime_stats.html" class="text-white block px-3 py-2 text-base font-medium">Crime Stats</a>
+                <a href="divisions.html" class="text-white block px-3 py-2 text-base font-medium">Divisions</a>
+                <button onclick="openEmergencyModal()" class="text-white block px-3 py-2 text-base font-medium">Emergency</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative h-96 flex items-center justify-center overflow-hidden mt-16">
+        <div class="absolute inset-0 hero-gradient"></div>
+        <img src="resources/officers_group.png" alt="Harris County Sheriff's Office Recruitment" class="absolute inset-0 w-full h-full object-cover mix-blend-multiply opacity-80">
+        
+        <div class="relative z-10 text-center text-white px-4 max-w-4xl mx-auto">
+            <h1 class="text-5xl md:text-6xl font-bold mb-4 text-shadow animate-fade-in">
+                Join Our Team
+            </h1>
+            <p class="text-xl md:text-2xl max-w-2xl mx-auto leading-relaxed animate-fade-in">
+                Start your rewarding career in law enforcement with comprehensive training, 
+                competitive benefits, and the opportunity to make a real difference in your community.
+            </p>
+        </div>
+    </section>
+
+    <!-- Application Process Overview -->
+    <section class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 animate-fade-in">
+                <h2 class="text-4xl font-bold text-gray-900 mb-6">Application Process</h2>
+                <div class="w-24 h-1 bg-yellow-500 mx-auto mb-8"></div>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Our comprehensive recruitment process ensures we select the best candidates 
+                    to serve and protect our community
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="text-center card-hover bg-gray-50 p-8 rounded-lg shadow-lg animate-fade-in">
+                    <div class="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">1</div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Online Application</h3>
+                    <p class="text-gray-600">Submit your comprehensive application and required documentation</p>
+                </div>
+                
+                <div class="text-center card-hover bg-gray-50 p-8 rounded-lg shadow-lg animate-fade-in">
+                    <div class="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">2</div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Written Exam</h3>
+                    <p class="text-gray-600">Take the law enforcement aptitude and skills assessment</p>
+                </div>
+                
+                <div class="text-center card-hover bg-gray-50 p-8 rounded-lg shadow-lg animate-fade-in">
+                    <div class="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">3</div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Physical Test</h3>
+                    <p class="text-gray-600">Complete the physical fitness and agility requirements</p>
+                </div>
+                
+                <div class="text-center card-hover bg-gray-50 p-8 rounded-lg shadow-lg animate-fade-in">
+                    <div class="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">4</div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Academy Training</h3>
+                    <p class="text-gray-600">Complete comprehensive law enforcement training program</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Requirements Checklist -->
+    <section class="py-20 bg-gray-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 animate-fade-in">
+                <h2 class="text-4xl font-bold text-gray-900 mb-6">Minimum Requirements</h2>
+                <div class="w-24 h-1 bg-yellow-500 mx-auto mb-8"></div>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Ensure you meet all minimum qualifications before starting your application
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <div class="animate-fade-in">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-6">Basic Qualifications</h3>
+                    <div class="space-y-4">
+                        <div class="requirement-item p-4 border border-gray-300 rounded-lg cursor-pointer" onclick="toggleRequirement(this)">
+                            <div class="flex items-center">
+                                <div class="w-6 h-6 border-2 border-gray-300 rounded mr-3 flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-green-600 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </div>
+                                <span class="text-gray-700">U.S. Citizen or permanent resident</span>
+                            </div>
+                        </div>
+                        
+                        <div class="requirement-item p-4 border border-gray-300 rounded-lg cursor-pointer" onclick="toggleRequirement(this)">
+                            <div class="flex items-center">
+                                <div class="w-6 h-6 border-2 border-gray-300 rounded mr-3 flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-green-600 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </div>
+                                <span class="text-gray-700">High school diploma or GED equivalent</span>
+                            </div>
+                        </div>
+                        
+                        <div class="requirement-item p-4 border border-gray-300 rounded-lg cursor-pointer" onclick="toggleRequirement(this)">
+                            <div class="flex items-center">
+                                <div class="w-6 h-6 border-2 border-gray-300 rounded mr-3 flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-green-600 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </div>
+                                <span class="text-gray-700">Minimum 21 years of age</span>
+                            </div>
+                        </div>
+                        
+                        <div class="requirement-item p-4 border border-gray-300 rounded-lg cursor-pointer" onclick="toggleRequirement(this)">
+                            <div class="flex items-center">
+                                <div class="w-6 h-6 border-2 border-gray-300 rounded mr-3 flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-green-600 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </div>
+                                <span class="text-gray-700">Valid driver's license</span>
+                            </div>
+                        </div>
+                        
+                        <div class="requirement-item p-4 border border-gray-300 rounded-lg cursor-pointer" onclick="toggleRequirement(this)">
+                            <div class="flex items-center">
+                                <div class="w-6 h-6 border-2 border-gray-300 rounded mr-3 flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-green-600 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </div>
+                                <span class="text-gray-700">Clean criminal record</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="animate-fade-in">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-6">Physical Requirements</h3>
+                    <div class="space-y-4">
+                        <div class="requirement-item p-4 border border-gray-300 rounded-lg cursor-pointer" onclick="toggleRequirement(this)">
+                            <div class="flex items-center">
+                                <div class="w-6 h-6 border-2 border-gray-300 rounded mr-3 flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-green-600 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </div>
+                                <span class="text-gray-700">Pass physical fitness test</span>
+                            </div>
+                        </div>
+                        
+                        <div class="requirement-item p-4 border border-gray-300 rounded-lg cursor-pointer" onclick="toggleRequirement(this)">
+                            <div class="flex items-center">
+                                <div class="w-6 h-6 border-2 border-gray-300 rounded mr-3 flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-green-600 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </div>
+                                <span class="text-gray-700">Vision correctable to 20/20</span>
+                            </div>
+                        </div>
+                        
+                        <div class="requirement-item p-4 border border-gray-300 rounded-lg cursor-pointer" onclick="toggleRequirement(this)">
+                            <div class="flex items-center">
+                                <div class="w-6 h-6 border-2 border-gray-300 rounded mr-3 flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-green-600 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </div>
+                                <span class="text-gray-700">Good hearing ability</span>
+                            </div>
+                        </div>
+                        
+                        <div class="requirement-item p-4 border border-gray-300 rounded-lg cursor-pointer" onclick="toggleRequirement(this)">
+                            <div class="flex items-center">
+                                <div class="w-6 h-6 border-2 border-gray-300 rounded mr-3 flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-green-600 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </div>
+                                <span class="text-gray-700">Pass medical examination</span>
+                            </div>
+                        </div>
+                        
+                        <div class="requirement-item p-4 border border-gray-300 rounded-lg cursor-pointer" onclick="toggleRequirement(this)">
+                            <div class="flex items-center">
+                                <div class="w-6 h-6 border-2 border-gray-300 rounded mr-3 flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-green-600 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </div>
+                                <span class="text-gray-700">Pass psychological evaluation</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-12 animate-fade-in">
+                <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                    <h4 class="text-lg font-semibold text-blue-800 mb-2">Ready to Apply?</h4>
+                    <p class="text-blue-700 mb-4">Complete all requirements checklist items to proceed with your application</p>
+                    <div class="mb-4">
+                        <span class="text-sm text-blue-600">Progress: </span>
+                        <span id="requirement-progress" class="text-sm font-semibold text-blue-800">0 / 10</span>
+                    </div>
+                    <button id="start-application" onclick="openApplicationModal()" disabled class="btn-primary text-white px-8 py-3 rounded-lg font-semibold opacity-50 cursor-not-allowed">
+                        Start Application
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 animate-fade-in">
+                <h2 class="text-4xl font-bold text-gray-900 mb-6">Career Benefits</h2>
+                <div class="w-24 h-1 bg-yellow-500 mx-auto mb-8"></div>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Competitive compensation, comprehensive training, and excellent career advancement opportunities
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="card-hover bg-gradient-to-br from-green-50 to-green-100 p-8 rounded-lg shadow-lg animate-fade-in">
+                    <div class="text-green-600 mb-4">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 mb-4">Competitive Salary</h3>
+                    <p class="text-gray-600 mb-4">Starting salary of $65,000 with regular pay increases and overtime opportunities</p>
+                    <ul class="text-sm text-gray-600 space-y-1">
+                        <li>• Annual cost of living adjustments</li>
+                        <li>• Shift differential pay</li>
+                        <li>• Holiday and overtime compensation</li>
+                    </ul>
+                </div>
+                
+                <div class="card-hover bg-gradient-to-br from-blue-50 to-blue-100 p-8 rounded-lg shadow-lg animate-fade-in">
+                    <div class="text-blue-600 mb-4">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 mb-4">Academy Training</h3>
+                    <p class="text-gray-600 mb-4">Comprehensive 6-month training program at our state-of-the-art facility</p>
+                    <ul class="text-sm text-gray-600 space-y-1">
+                        <li>• Paid training with full benefits</li>
+                        <li>• Expert instruction from veteran officers</li>
+                        <li>• Hands-on scenario-based training</li>
+                    </ul>
+                </div>
+                
+                <div class="card-hover bg-gradient-to-br from-purple-50 to-purple-100 p-8 rounded-lg shadow-lg animate-fade-in">
+                    <div class="text-purple-600 mb-4">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 mb-4">Career Advancement</h3>
+                    <p class="text-gray-600 mb-4">Clear promotion pathways and specialized unit opportunities</p>
+                    <ul class="text-sm text-gray-600 space-y-1">
+                        <li>• Regular promotion opportunities</li>
+                        <li>• Specialized unit assignments</li>
+                        <li>• Leadership development programs</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Application Modal -->
+    <div id="applicationModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeApplicationModal()">&times;</span>
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Deputy Sheriff Application</h2>
+            
+            <!-- Progress Bar -->
+            <div class="mb-8">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm font-medium text-gray-700">Application Progress</span>
+                    <span id="progress-text" class="text-sm font-medium text-gray-700">Step 1 of 4</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div id="progress-bar" class="progress-bar bg-blue-600 h-2 rounded-full" style="width: 25%"></div>
+                </div>
+            </div>
+            
+            <!-- Step Indicators -->
+            <div class="flex justify-center mb-8">
+                <div class="flex space-x-4">
+                    <div class="step-indicator active w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold">1</div>
+                    <div class="step-indicator w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold bg-gray-200">2</div>
+                    <div class="step-indicator w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold bg-gray-200">3</div>
+                    <div class="step-indicator w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold bg-gray-200">4</div>
+                </div>
+            </div>
+            
+            <form id="applicationForm">
+                <!-- Step 1: Personal Information -->
+                <div class="form-step active" id="step1">
+                    <h3 class="text-xl font-bold text-gray-900 mb-6">Personal Information</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
+                            <input type="text" name="firstName" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Last Name *</label>
+                            <input type="text" name="lastName" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Date of Birth *</label>
+                            <input type="date" name="dateOfBirth" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
+                            <input type="email" name="email" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
+                            <input type="tel" name="phone" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Driver's License Number *</label>
+                            <input type="text" name="licenseNumber" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 2: Education & Experience -->
+                <div class="form-step" id="step2">
+                    <h3 class="text-xl font-bold text-gray-900 mb-6">Education & Experience</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Highest Education Level *</label>
+                            <select name="education" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">Select Education Level</option>
+                                <option value="high-school">High School Diploma/GED</option>
+                                <option value="some-college">Some College</option>
+                                <option value="associate">Associate's Degree</option>
+                                <option value="bachelor">Bachelor's Degree</option>
+                                <option value="master">Master's Degree</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Previous Law Enforcement Experience</label>
+                            <select name="experience" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="none">No Previous Experience</option>
+                                <option value="military">Military Experience</option>
+                                <option value="security">Security/Private Investigation</option>
+                                <option value="corrections">Corrections</option>
+                                <option value="police">Other Police Department</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Special Skills or Certifications</label>
+                            <textarea name="skills" rows="4" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="List any relevant skills, certifications, or training"></textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 3: Scenario Questions -->
+                <div class="form-step" id="step3">
+                    <h3 class="text-xl font-bold text-gray-900 mb-6">Scenario Questions</h3>
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-3">
+                                You respond to a domestic dispute call. Upon arrival, you hear shouting from inside the residence. What is your first action?
+                            </label>
+                            <div class="space-y-2">
+                                <label class="flex items-center">
+                                    <input type="radio" name="scenario1" value="a" class="mr-3">
+                                    <span>Immediately enter the residence to assess the situation</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="scenario1" value="b" class="mr-3">
+                                    <span>Wait for backup before approaching</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="scenario1" value="c" class="mr-3">
+                                    <span>Announce your presence and request entry</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="scenario1" value="d" class="mr-3">
+                                    <span>Call for additional units and observe from a safe distance</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-3">
+                                A community member approaches you with a complaint about a speeding issue in their neighborhood. How do you respond?
+                            </label>
+                            <div class="space-y-2">
+                                <label class="flex items-center">
+                                    <input type="radio" name="scenario2" value="a" class="mr-3">
+                                    <span>Explain that traffic enforcement is not your primary responsibility</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="scenario2" value="b" class="mr-3">
+                                    <span>Listen to their concerns and explain available enforcement options</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="scenario2" value="c" class="mr-3">
+                                    <span>Promise to increase patrols in the area immediately</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="scenario2" value="d" class="mr-3">
+                                    <span>Take their contact information and say you'll look into it</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 4: Availability & Preferences -->
+                <div class="form-step" id="step4">
+                    <h3 class="text-xl font-bold text-gray-900 mb-6">Availability & Preferences</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Preferred Shift</label>
+                            <div class="space-y-2">
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="shifts" value="day" class="mr-3">
+                                    <span>Day Shift (6 AM - 6 PM)</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="shifts" value="night" class="mr-3">
+                                    <span>Night Shift (6 PM - 6 AM)</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="shifts" value="rotating" class="mr-3">
+                                    <span>Rotating Shifts</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Preferred Division</label>
+                            <select name="division" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="patrol">Patrol</option>
+                                <option value="investigations">Investigations</option>
+                                <option value="traffic">Traffic Enforcement</option>
+                                <option value="k9">K-9 Unit</option>
+                                <option value="swat">SWAT</option>
+                                <option value="any">No Preference</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Additional Comments</label>
+                            <textarea name="comments" rows="4" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Any additional information you'd like to provide"></textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Navigation Buttons -->
+                <div class="flex justify-between mt-8">
+                    <button type="button" id="prev-btn" onclick="previousStep()" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors" style="display: none;">
+                        Previous
+                    </button>
+                    <div class="flex-1"></div>
+                    <button type="button" id="next-btn" onclick="nextStep()" class="btn-primary text-white px-6 py-3 rounded-lg font-semibold">
+                        Next
+                    </button>
+                    <button type="submit" id="submit-btn" class="btn-primary text-white px-6 py-3 rounded-lg font-semibold" style="display: none;">
+                        Submit Application
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <div class="flex items-center mb-4">
+                        <img src="resources/sheriff_badge.png" alt="Harris County Sheriff's Office" class="h-8 w-8 mr-3">
+                        <span class="font-bold text-xl">Harris County Sheriff's Office</span>
+                    </div>
+                    <p class="text-gray-400 leading-relaxed">
+                        Dedicated to serving and protecting the residents of Harris County with 
+                        integrity, professionalism, and excellence in law enforcement.
+                    </p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Contact Information</h3>
+                    <div class="space-y-2 text-gray-400">
+                        <p>Emergency: <span class="text-white font-semibold">911</span></p>
+                        <p>Non-Emergency: <span class="text-white font-semibold">(713) 221-6000</span></p>
+                        <p>Address: <span class="text-white font-semibold">1200 Baker St, Houston, TX 77002</span></p>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Quick Links</h3>
+                    <div class="space-y-2">
+                        <a href="recruitment.html" class="block text-gray-400 hover:text-white transition-colors">Career Opportunities</a>
+                        <a href="crime_stats.html" class="block text-gray-400 hover:text-white transition-colors">Crime Statistics</a>
+                        <a href="divisions.html" class="block text-gray-400 hover:text-white transition-colors">Department Divisions</a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2024 Harris County Sheriff's Office. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="main.js"></script>
+    <script>
+        // Recruitment page specific functionality
+        let currentStep = 1;
+        const totalSteps = 4;
+
+        function toggleRequirement(element) {
+            const checkbox = element.querySelector('svg');
+            const isChecked = !checkbox.classList.contains('hidden');
+            
+            if (isChecked) {
+                checkbox.classList.add('hidden');
+                element.classList.remove('checked');
+            } else {
+                checkbox.classList.remove('hidden');
+                element.classList.add('checked');
+            }
+            
+            updateRequirementProgress();
+        }
+
+        function updateRequirementProgress() {
+            const checkedItems = document.querySelectorAll('.requirement-item.checked').length;
+            const totalItems = document.querySelectorAll('.requirement-item').length;
+            
+            document.getElementById('requirement-progress').textContent = `${checkedItems} / ${totalItems}`;
+            
+            const startButton = document.getElementById('start-application');
+            if (checkedItems === totalItems) {
+                startButton.disabled = false;
+                startButton.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                startButton.disabled = true;
+                startButton.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        function openApplicationModal() {
+            const modal = document.getElementById('applicationModal');
+            modal.style.display = 'block';
+            anime({
+                targets: modal.querySelector('.modal-content'),
+                scale: [0.8, 1],
+                opacity: [0, 1],
+                duration: 300,
+                easing: 'easeOutQuart'
+            });
+        }
+
+        function closeApplicationModal() {
+            const modal = document.getElementById('applicationModal');
+            anime({
+                targets: modal.querySelector('.modal-content'),
+                scale: [1, 0.8],
+                opacity: [1, 0],
+                duration: 300,
+                easing: 'easeOutQuart',
+                complete: () => {
+                    modal.style.display = 'none';
+                    resetApplicationForm();
+                }
+            });
+        }
+
+        function nextStep() {
+            if (validateCurrentStep()) {
+                if (currentStep < totalSteps) {
+                    // Hide current step
+                    document.getElementById(`step${currentStep}`).classList.remove('active');
+                    document.querySelector(`.step-indicator:nth-child(${currentStep})`).classList.add('completed');
+                    document.querySelector(`.step-indicator:nth-child(${currentStep})`).classList.remove('active');
+                    
+                    currentStep++;
+                    
+                    // Show next step
+                    document.getElementById(`step${currentStep}`).classList.add('active');
+                    document.querySelector(`.step-indicator:nth-child(${currentStep})`).classList.add('active');
+                    
+                    updateProgress();
+                    updateNavigationButtons();
+                }
+            }
+        }
+
+        function previousStep() {
+            if (currentStep > 1) {
+                // Hide current step
+                document.getElementById(`step${currentStep}`).classList.remove('active');
+                document.querySelector(`.step-indicator:nth-child(${currentStep})`).classList.remove('active');
+                
+                currentStep--;
+                
+                // Show previous step
+                document.getElementById(`step${currentStep}`).classList.add('active');
+                document.querySelector(`.step-indicator:nth-child(${currentStep})`).classList.add('active');
+                document.querySelector(`.step-indicator:nth-child(${currentStep})`).classList.remove('completed');
+                
+                updateProgress();
+                updateNavigationButtons();
+            }
+        }
+
+        function updateProgress() {
+            const progress = (currentStep / totalSteps) * 100;
+            document.getElementById('progress-bar').style.width = progress + '%';
+            document.getElementById('progress-text').textContent = `Step ${currentStep} of ${totalSteps}`;
+        }
+
+        function updateNavigationButtons() {
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const submitBtn = document.getElementById('submit-btn');
+            
+            if (currentStep === 1) {
+                prevBtn.style.display = 'none';
+            } else {
+                prevBtn.style.display = 'block';
+            }
+            
+            if (currentStep === totalSteps) {
+                nextBtn.style.display = 'none';
+                submitBtn.style.display = 'block';
+            } else {
+                nextBtn.style.display = 'block';
+                submitBtn.style.display = 'none';
+            }
+        }
+
+        function validateCurrentStep() {
+            const currentStepElement = document.getElementById(`step${currentStep}`);
+            const requiredFields = currentStepElement.querySelectorAll('[required]');
+            let isValid = true;
+            
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    field.classList.add('border-red-500');
+                    isValid = false;
+                } else {
+                    field.classList.remove('border-red-500');
+                }
+            });
+            
+            return isValid;
+        }
+
+        function resetApplicationForm() {
+            currentStep = 1;
+            document.getElementById('applicationForm').reset();
+            
+            // Reset steps
+            for (let i = 1; i <= totalSteps; i++) {
+                document.getElementById(`step${i}`).classList.remove('active');
+                const indicator = document.querySelector(`.step-indicator:nth-child(${i})`);
+                indicator.classList.remove('active', 'completed');
+                if (i === 1) {
+                    indicator.classList.add('active');
+                }
+            }
+            
+            document.getElementById('step1').classList.add('active');
+            updateProgress();
+            updateNavigationButtons();
+        }
+
+        // Handle form submission
+        document.getElementById('applicationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (validateCurrentStep()) {
+                // Show loading state
+                const submitBtn = document.getElementById('submit-btn');
+                submitBtn.textContent = 'Submitting...';
+                submitBtn.disabled = true;
+                
+                // Simulate form submission
+                setTimeout(() => {
+                    showSuccessMessage('Application submitted successfully! You will receive a confirmation email with your application tracking number.');
+                    closeApplicationModal();
+                    submitBtn.textContent = 'Submit Application';
+                    submitBtn.disabled = false;
+                }, 2000);
+            }
+        });
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateRequirementProgress();
+        });
+    </script>
+</body>
+</html>
