@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crime Statistics - Harris County Sheriff's Office</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .hero-gradient {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #d97706 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 8s ease-in-out infinite;
+        }
+        
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            background: rgba(30, 58, 138, 0.9);
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #d97706, #f59e0b);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(217, 119, 6, 0.3);
+        }
+        
+        .text-shadow {
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .animate-fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        
+        .animate-fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+            transition: all 0.6s ease;
+        }
+        
+        .filter-btn {
+            transition: all 0.3s ease;
+        }
+        
+        .filter-btn.active {
+            background: #1e3a8a;
+            color: white;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-left: 4px solid #1e3a8a;
+        }
+        
+        .chart-container {
+            min-height: 400px;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .close {
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #6b7280;
+        }
+        
+        .close:hover {
+            color: #1e3a8a;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 glass-effect">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <img src="resources/sheriff_badge.png" alt="Harris County Sheriff's Office" class="h-10 w-10 mr-3">
+                    <span class="text-white font-bold text-xl">Harris County Sheriff's Office</span>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="index.html" class="text-white hover:text-yellow-300 px-3 py-2 text-sm font-medium transition-colors">Home</a>
+                        <a href="recruitment.html" class="text-white hover:text-yellow-300 px-3 py-2 text-sm font-medium transition-colors">Recruitment</a>
+                        <a href="crime_stats.html" class="text-white hover:text-yellow-300 px-3 py-2 text-sm font-medium border-b-2 border-yellow-300">Crime Stats</a>
+                        <a href="divisions.html" class="text-white hover:text-yellow-300 px-3 py-2 text-sm font-medium transition-colors">Divisions</a>
+                        <button onclick="openEmergencyModal()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">Emergency</button>
+                    </div>
+                </div>
+                <div class="md:hidden">
+                    <button onclick="toggleMobileMenu()" class="text-white hover:text-yellow-300">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="mobile-menu" class="hidden md:hidden bg-blue-900">
+            <div class="px-2 pt-2 pb-3 space-y-1">
+                <a href="index.html" class="text-white block px-3 py-2 text-base font-medium">Home</a>
+                <a href="recruitment.html" class="text-white block px-3 py-2 text-base font-medium">Recruitment</a>
+                <a href="crime_stats.html" class="text-white block px-3 py-2 text-base font-medium">Crime Stats</a>
+                <a href="divisions.html" class="text-white block px-3 py-2 text-base font-medium">Divisions</a>
+                <button onclick="openEmergencyModal()" class="text-white block px-3 py-2 text-base font-medium">Emergency</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative h-96 flex items-center justify-center overflow-hidden mt-16">
+        <div class="absolute inset-0 hero-gradient"></div>
+        <img src="resources/dispatch_center.png" alt="Crime Statistics Dashboard" class="absolute inset-0 w-full h-full object-cover mix-blend-multiply opacity-80">
+        
+        <div class="relative z-10 text-center text-white px-4 max-w-4xl mx-auto">
+            <h1 class="text-5xl md:text-6xl font-bold mb-4 text-shadow animate-fade-in">
+                Crime Statistics
+            </h1>
+            <p class="text-xl md:text-2xl max-w-2xl mx-auto leading-relaxed animate-fade-in">
+                Transparent crime data and community safety information to keep Harris County residents informed and protected
+            </p>
+        </div>
+    </section>
+
+    <!-- Statistics Overview -->
+    <section class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 animate-fade-in">
+                <h2 class="text-4xl font-bold text-gray-900 mb-6">Current Statistics</h2>
+                <div class="w-24 h-1 bg-yellow-500 mx-auto mb-8"></div>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Real-time crime data and trends for Harris County
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+                <div class="stat-card p-6 rounded-lg shadow-lg animate-fade-in">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="text-3xl font-bold text-blue-600" id="total-incidents">1,247</div>
+                        <div class="text-red-500">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Total Incidents</h3>
+                    <p class="text-sm text-gray-600">Last 30 days</p>
+                </div>
+                
+                <div class="stat-card p-6 rounded-lg shadow-lg animate-fade-in">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="text-3xl font-bold text-green-600" id="solved-cases">892</div>
+                        <div class="text-green-500">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Cases Solved</h3>
+                    <p class="text-sm text-gray-600">71.5% clearance rate</p>
+                </div>
+                
+                <div class="stat-card p-6 rounded-lg shadow-lg animate-fade-in">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="text-3xl font-bold text-yellow-600" id="response-time">4.2</div>
+                        <div class="text-yellow-500">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Response Time</h3>
+                    <p class="text-sm text-gray-600">Average minutes</p>
+                </div>
+                
+                <div class="stat-card p-6 rounded-lg shadow-lg animate-fade-in">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="text-3xl font-bold text-purple-600" id="community-score">8.7</div>
+                        <div class="text-purple-500">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Safety Score</h3>
+                    <p class="text-sm text-gray-600">Community rating</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Dashboard -->
+    <section class="py-20 bg-gray-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 animate-fade-in">
+                <h2 class="text-4xl font-bold text-gray-900 mb-6">Interactive Crime Dashboard</h2>
+                <div class="w-24 h-1 bg-yellow-500 mx-auto mb-8"></div>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Explore detailed crime data with interactive filters and visualizations
+                </p>
+            </div>
+            
+            <!-- Filters -->
+            <div class="bg-white p-6 rounded-lg shadow-lg mb-8 animate-fade-in">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Filter Data</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Time Range</label>
+                        <select id="timeRange" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="30">Last 30 Days</option>
+                            <option value="90">Last 3 Months</option>
+                            <option value="180">Last 6 Months</option>
+                            <option value="365">Last Year</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">District</label>
+                        <select id="districtFilter" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="all">All Districts</option>
+                            <option value="north">North District</option>
+                            <option value="south">South District</option>
+                            <option value="east">East District</option>
+                            <option value="west">West District</option>
+                            <option value="central">Central District</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Crime Type</label>
+                        <select id="crimeTypeFilter" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="all">All Types</option>
+                            <option value="theft">Theft</option>
+                            <option value="assault">Assault</option>
+                            <option value="burglary">Burglary</option>
+                            <option value="drugs">Drug Offenses</option>
+                            <option value="dui">DUI</option>
+                            <option value="vandalism">Vandalism</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mt-4 flex justify-end">
+                    <button onclick="updateDashboard()" class="btn-primary text-white px-6 py-3 rounded-lg font-semibold">
+                        Apply Filters
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Charts Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Crime Trends Chart -->
+                <div class="bg-white p-6 rounded-lg shadow-lg animate-fade-in">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Crime Trends</h3>
+                    <div id="trendsChart" class="chart-container"></div>
+                </div>
+                
+                <!-- Crime Types Distribution -->
+                <div class="bg-white p-6 rounded-lg shadow-lg animate-fade-in">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Crime Types</h3>
+                    <div id="crimeTypesChart" class="chart-container"></div>
+                </div>
+                
+                <!-- District Comparison -->
+                <div class="bg-white p-6 rounded-lg shadow-lg animate-fade-in">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">District Comparison</h3>
+                    <div id="districtChart" class="chart-container"></div>
+                </div>
+                
+                <!-- Response Time Analysis -->
+                <div class="bg-white p-6 rounded-lg shadow-lg animate-fade-in">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Response Times</h3>
+                    <div id="responseChart" class="chart-container"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Crime Map -->
+    <section class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 animate-fade-in">
+                <h2 class="text-4xl font-bold text-gray-900 mb-6">Crime Hotspot Map</h2>
+                <div class="w-24 h-1 bg-yellow-500 mx-auto mb-8"></div>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Interactive map showing recent crime activity across Harris County
+                </p>
+            </div>
+            
+            <div class="bg-gray-100 rounded-lg shadow-lg p-8 animate-fade-in">
+                <div id="crimeMap" class="w-full h-96 bg-gray-200 rounded-lg flex items-center justify-center">
+                    <div class="text-center">
+                        <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+                        </svg>
+                        <h3 class="text-lg font-semibold text-gray-700 mb-2">Interactive Crime Map</h3>
+                        <p class="text-gray-600 mb-4">Click on districts to view detailed crime information</p>
+                        <button onclick="openMapModal()" class="btn-primary text-white px-6 py-3 rounded-lg font-semibold">
+                            View Full Map
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Community Safety Tips -->
+    <section class="py-20 bg-gray-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 animate-fade-in">
+                <h2 class="text-4xl font-bold text-gray-900 mb-6">Community Safety</h2>
+                <div class="w-24 h-1 bg-yellow-500 mx-auto mb-8"></div>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Important safety tips and resources for Harris County residents
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="card-hover bg-gradient-to-br from-blue-50 to-blue-100 p-8 rounded-lg shadow-lg animate-fade-in">
+                    <div class="text-blue-600 mb-4">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 mb-4">Home Security</h3>
+                    <ul class="text-gray-600 space-y-2">
+                        <li>• Install quality deadbolt locks</li>
+                        <li>• Use motion-sensor lighting</li>
+                        <li>• Keep shrubs trimmed near windows</li>
+                        <li>• Consider security system installation</li>
+                    </ul>
+                </div>
+                
+                <div class="card-hover bg-gradient-to-br from-green-50 to-green-100 p-8 rounded-lg shadow-lg animate-fade-in">
+                    <div class="text-green-600 mb-4">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 mb-4">Neighborhood Watch</h3>
+                    <ul class="text-gray-600 space-y-2">
+                        <li>• Get to know your neighbors</li>
+                        <li>• Report suspicious activity</li>
+                        <li>• Join local watch programs</li>
+                        <li>• Share vacation schedules</li>
+                    </ul>
+                </div>
+                
+                <div class="card-hover bg-gradient-to-br from-purple-50 to-purple-100 p-8 rounded-lg shadow-lg animate-fade-in">
+                    <div class="text-purple-600 mb-4">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 mb-4">Emergency Preparedness</h3>
+                    <ul class="text-gray-600 space-y-2">
+                        <li>• Keep emergency contacts handy</li>
+                        <li>• Have a family emergency plan</li>
+                        <li>• Store emergency supplies</li>
+                        <li>• Know evacuation routes</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <div class="flex items-center mb-4">
+                        <img src="resources/sheriff_badge.png" alt="Harris County Sheriff's Office" class="h-8 w-8 mr-3">
+                        <span class="font-bold text-xl">Harris County Sheriff's Office</span>
+                    </div>
+                    <p class="text-gray-400 leading-relaxed">
+                        Dedicated to serving and protecting the residents of Harris County with 
+                        integrity, professionalism, and excellence in law enforcement.
+                    </p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Contact Information</h3>
+                    <div class="space-y-2 text-gray-400">
+                        <p>Emergency: <span class="text-white font-semibold">911</span></p>
+                        <p>Non-Emergency: <span class="text-white font-semibold">(713) 221-6000</span></p>
+                        <p>Address: <span class="text-white font-semibold">1200 Baker St, Houston, TX 77002</span></p>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Quick Links</h3>
+                    <div class="space-y-2">
+                        <a href="recruitment.html" class="block text-gray-400 hover:text-white transition-colors">Career Opportunities</a>
+                        <a href="crime_stats.html" class="block text-gray-400 hover:text-white transition-colors">Crime Statistics</a>
+                        <a href="divisions.html" class="block text-gray-400 hover:text-white transition-colors">Department Divisions</a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2024 Harris County Sheriff's Office. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Map Modal -->
+    <div id="mapModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeMapModal()">&times;</span>
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Interactive Crime Map</h2>
+            <div class="bg-gray-100 p-6 rounded-lg">
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-red-100 p-4 rounded-lg text-center cursor-pointer hover:bg-red-200 transition-colors" onclick="showDistrictInfo('north')">
+                        <h3 class="font-bold text-red-800">North District</h3>
+                        <p class="text-sm text-red-600">23 incidents</p>
+                    </div>
+                    <div class="bg-orange-100 p-4 rounded-lg text-center cursor-pointer hover:bg-orange-200 transition-colors" onclick="showDistrictInfo('south')">
+                        <h3 class="font-bold text-orange-800">South District</h3>
+                        <p class="text-sm text-orange-600">31 incidents</p>
+                    </div>
+                    <div class="bg-yellow-100 p-4 rounded-lg text-center cursor-pointer hover:bg-yellow-200 transition-colors" onclick="showDistrictInfo('east')">
+                        <h3 class="font-bold text-yellow-800">East District</h3>
+                        <p class="text-sm text-yellow-600">18 incidents</p>
+                    </div>
+                    <div class="bg-green-100 p-4 rounded-lg text-center cursor-pointer hover:bg-green-200 transition-colors" onclick="showDistrictInfo('west')">
+                        <h3 class="font-bold text-green-800">West District</h3>
+                        <p class="text-sm text-green-600">15 incidents</p>
+                    </div>
+                    <div class="bg-blue-100 p-4 rounded-lg text-center cursor-pointer hover:bg-blue-200 transition-colors" onclick="showDistrictInfo('central')">
+                        <h3 class="font-bold text-blue-800">Central District</h3>
+                        <p class="text-sm text-blue-600">28 incidents</p>
+                    </div>
+                </div>
+                <div id="district-info" class="bg-white p-4 rounded-lg border" style="display: none;">
+                    <h4 class="font-bold text-gray-900 mb-2">District Details</h4>
+                    <p class="text-gray-600">Click on a district to view detailed information</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="main.js"></script>
+    <script>
+        // Crime Statistics Dashboard
+        let trendsChart, crimeTypesChart, districtChart, responseChart;
+
+        // Initialize charts when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCharts();
+            updateDashboard();
+        });
+
+        function initializeCharts() {
+            // Crime Trends Chart
+            trendsChart = echarts.init(document.getElementById('trendsChart'));
+            
+            // Crime Types Chart
+            crimeTypesChart = echarts.init(document.getElementById('crimeTypesChart'));
+            
+            // District Chart
+            districtChart = echarts.init(document.getElementById('districtChart'));
+            
+            // Response Time Chart
+            responseChart = echarts.init(document.getElementById('responseChart'));
+        }
+
+        function updateDashboard() {
+            const timeRange = document.getElementById('timeRange').value;
+            const district = document.getElementById('districtFilter').value;
+            const crimeType = document.getElementById('crimeTypeFilter').value;
+            
+            // Update all charts with filtered data
+            updateTrendsChart(timeRange, district, crimeType);
+            updateCrimeTypesChart(timeRange, district, crimeType);
+            updateDistrictChart(timeRange, crimeType);
+            updateResponseChart(timeRange, district, crimeType);
+            updateStatistics(timeRange, district, crimeType);
+        }
+
+        function updateTrendsChart(timeRange, district, crimeType) {
+            const data = generateTrendsData(timeRange, district, crimeType);
+            
+            const option = {
+                title: {
+                    text: 'Crime Trends',
+                    textStyle: { fontSize: 16, color: '#374151' }
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { type: 'cross' }
+                },
+                xAxis: {
+                    type: 'category',
+                    data: data.dates,
+                    axisLabel: { color: '#6b7280' }
+                },
+                yAxis: {
+                    type: 'value',
+                    axisLabel: { color: '#6b7280' }
+                },
+                series: [{
+                    name: 'Incidents',
+                    type: 'line',
+                    data: data.values,
+                    smooth: true,
+                    lineStyle: { color: '#1e3a8a', width: 3 },
+                    areaStyle: { color: 'rgba(30, 58, 138, 0.1)' }
+                }],
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                }
+            };
+            
+            trendsChart.setOption(option);
+        }
+
+        function updateCrimeTypesChart(timeRange, district, crimeType) {
+            const data = generateCrimeTypesData(timeRange, district, crimeType);
+            
+            const option = {
+                title: {
+                    text: 'Crime Types Distribution',
+                    textStyle: { fontSize: 16, color: '#374151' }
+                },
+                tooltip: {
+                    trigger: 'item',
+                    formatter: '{a} <br/>{b}: {c} ({d}%)'
+                },
+                series: [{
+                    name: 'Crime Types',
+                    type: 'pie',
+                    radius: '70%',
+                    data: data,
+                    emphasis: {
+                        itemStyle: {
+                            shadowBlur: 10,
+                            shadowOffsetX: 0,
+                            shadowColor: 'rgba(0, 0, 0, 0.5)'
+                        }
+                    },
+                    color: ['#1e3a8a', '#d97706', '#059669', '#dc2626', '#7c3aed', '#ea580c']
+                }]
+            };
+            
+            crimeTypesChart.setOption(option);
+        }
+
+        function updateDistrictChart(timeRange, crimeType) {
+            const data = generateDistrictData(timeRange, crimeType);
+            
+            const option = {
+                title: {
+                    text: 'District Comparison',
+                    textStyle: { fontSize: 16, color: '#374151' }
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { type: 'shadow' }
+                },
+                xAxis: {
+                    type: 'category',
+                    data: data.districts,
+                    axisLabel: { color: '#6b7280' }
+                },
+                yAxis: {
+                    type: 'value',
+                    axisLabel: { color: '#6b7280' }
+                },
+                series: [{
+                    name: 'Incidents',
+                    type: 'bar',
+                    data: data.values,
+                    itemStyle: { color: '#1e3a8a' },
+                    emphasis: {
+                        itemStyle: { color: '#d97706' }
+                    }
+                }],
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                }
+            };
+            
+            districtChart.setOption(option);
+        }
+
+        function updateResponseChart(timeRange, district, crimeType) {
+            const data = generateResponseData(timeRange, district, crimeType);
+            
+            const option = {
+                title: {
+                    text: 'Response Time Analysis',
+                    textStyle: { fontSize: 16, color: '#374151' }
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { type: 'cross' }
+                },
+                xAxis: {
+                    type: 'category',
+                    data: data.categories,
+                    axisLabel: { color: '#6b7280' }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: 'Minutes',
+                    axisLabel: { color: '#6b7280' }
+                },
+                series: [{
+                    name: 'Response Time',
+                    type: 'bar',
+                    data: data.values,
+                    itemStyle: { color: '#059669' },
+                    emphasis: {
+                        itemStyle: { color: '#10b981' }
+                    }
+                }],
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                }
+            };
+            
+            responseChart.setOption(option);
+        }
+
+        function updateStatistics(timeRange, district, crimeType) {
+            // Simulate updating statistics based on filters
+            const stats = generateStatistics(timeRange, district, crimeType);
+            
+            document.getElementById('total-incidents').textContent = stats.totalIncidents;
+            document.getElementById('solved-cases').textContent = stats.solvedCases;
+            document.getElementById('response-time').textContent = stats.responseTime;
+            document.getElementById('community-score').textContent = stats.communityScore;
+        }
+
+        // Data generation functions (simulated)
+        function generateTrendsData(timeRange, district, crimeType) {
+            const dates = [];
+            const values = [];
+            const days = parseInt(timeRange);
+            
+            for (let i = days - 1; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                dates.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+                values.push(Math.floor(Math.random() * 50) + 20);
+            }
+            
+            return { dates, values };
+        }
+
+        function generateCrimeTypesData(timeRange, district, crimeType) {
+            const types = [
+                { name: 'Theft', value: 245 },
+                { name: 'Assault', value: 189 },
+                { name: 'Burglary', value: 156 },
+                { name: 'Drug Offenses', value: 134 },
+                { name: 'DUI', value: 98 },
+                { name: 'Vandalism', value: 87 }
+            ];
+            
+            return types;
+        }
+
+        function generateDistrictData(timeRange, crimeType) {
+            return {
+                districts: ['North', 'South', 'East', 'West', 'Central'],
+                values: [23, 31, 18, 15, 28]
+            };
+        }
+
+        function generateResponseData(timeRange, district, crimeType) {
+            return {
+                categories: ['Emergency', 'Priority', 'Standard', 'Non-Emergency'],
+                values: [3.2, 5.8, 8.4, 12.1]
+            };
+        }
+
+        function generateStatistics(timeRange, district, crimeType) {
+            return {
+                totalIncidents: Math.floor(Math.random() * 500) + 1000,
+                solvedCases: Math.floor(Math.random() * 300) + 700,
+                responseTime: (Math.random() * 3 + 3).toFixed(1),
+                communityScore: (Math.random() * 2 + 7.5).toFixed(1)
+            };
+        }
+
+        // Modal functions
+        function openMapModal() {
+            const modal = document.getElementById('mapModal');
+            modal.style.display = 'block';
+            anime({
+                targets: modal.querySelector('.modal-content'),
+                scale: [0.8, 1],
+                opacity: [0, 1],
+                duration: 300,
+                easing: 'easeOutQuart'
+            });
+        }
+
+        function closeMapModal() {
+            const modal = document.getElementById('mapModal');
+            anime({
+                targets: modal.querySelector('.modal-content'),
+                scale: [1, 0.8],
+                opacity: [1, 0],
+                duration: 300,
+                easing: 'easeOutQuart',
+                complete: () => {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+
+        function showDistrictInfo(district) {
+            const infoDiv = document.getElementById('district-info');
+            const districtData = {
+                north: { incidents: 23, solved: 18, response: 4.1 },
+                south: { incidents: 31, solved: 22, response: 3.8 },
+                east: { incidents: 18, solved: 15, response: 4.5 },
+                west: { incidents: 15, solved: 12, response: 4.2 },
+                central: { incidents: 28, solved: 21, response: 3.9 }
+            };
+            
+            const data = districtData[district];
+            infoDiv.innerHTML = `
+                <h4 class="font-bold text-gray-900 mb-2">${district.charAt(0).toUpperCase() + district.slice(1)} District Details</h4>
+                <div class="grid grid-cols-3 gap-4 text-sm">
+                    <div>
+                        <span class="font-semibold text-gray-700">Total Incidents:</span>
+                        <span class="text-gray-600">${data.incidents}</span>
+                    </div>
+                    <div>
+                        <span class="font-semibold text-gray-700">Cases Solved:</span>
+                        <span class="text-gray-600">${data.solved}</span>
+                    </div>
+                    <div>
+                        <span class="font-semibold text-gray-700">Avg Response:</span>
+                        <span class="text-gray-600">${data.response} min</span>
+                    </div>
+                </div>
+            `;
+            infoDiv.style.display = 'block';
+        }
+
+        // Resize charts on window resize
+        window.addEventListener('resize', function() {
+            if (trendsChart) trendsChart.resize();
+            if (crimeTypesChart) crimeTypesChart.resize();
+            if (districtChart) districtChart.resize();
+            if (responseChart) responseChart.resize();
+        });
+    </script>
+</body>
+</html>
